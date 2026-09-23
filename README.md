@@ -19,7 +19,7 @@
 
 ## Assigned Project
 
-**The AutoParts Store**
+**The AutoParts Store Product System**
 
 ---
 
