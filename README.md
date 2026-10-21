@@ -23,6 +23,13 @@
 
 ---
 
+## Tech stack 
+
+-- MariaDB
+-- express.js
+-- node.js 
+-- react
+
 ## Brief Project Description
 
 The AutoParts Store is a web-based system that allows customers to browse and purchase automotive parts online.
