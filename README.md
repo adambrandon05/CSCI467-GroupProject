@@ -25,10 +25,10 @@
 
 ## Tech stack 
 
--- MariaDB
--- express.js
--- node.js 
--- react
+* MariaDB
+* express.js
+* node.js 
+* react
 
 ## Brief Project Description
 
@@ -37,6 +37,16 @@ The AutoParts Store is a web-based system that allows customers to browse and pu
 The system will also include several internal dashboards used by employees and administrators to manage inventory, receive products, process orders, handle shipping, and perform other store operations.
 
 ---
+
+## Current To-Do
+
+### Stand-up — Week of 10/26
+
+- [ ] Set up initial project files
+- [ ] Implement API endpoints
+- [ ] Create database schema and insert sample data
+- [ ] Develop basic prototype
+
 
 ## Initial Project Goals
 
