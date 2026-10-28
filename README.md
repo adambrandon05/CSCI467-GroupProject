@@ -30,6 +30,98 @@
 * node.js 
 * react
 
+## 1. Clone the Repository
+
+Open a terminal and run:
+
+```bash
+git clone <repository-url>
+cd CSCI467-GroupProject
+```
+
+Replace `<repository-url>` with the GitHub repository URL.
+
+## 2. Backend Setup
+
+Navigate to the backend directory:
+
+```bash
+cd backend
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+### Environment Variables
+
+Create a file named `.env` inside the `backend` directory.
+
+Following the guide in env.example
+
+
+### Start the Backend
+
+Once the Express server files have been implemented, run:
+
+```bash
+npm run dev
+```
+
+The backend is intended to run at:
+
+http://localhost:5000
+
+**Current status:** Backend development is still in progress. This command requires the Express entry point and npm development script to be configured.
+
+## 3. Frontend Setup
+
+Open another terminal and navigate to the frontend directory from the project root:
+
+```bash
+cd frontend
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Start React:
+
+```bash
+npm run dev
+```
+
+Open the local URL displayed in the terminal, typically:
+
+http://localhost:5173/
+
+The React development server automatically updates when you save changes.
+
+## 4. Running the Project
+
+Once the backend is configured, run the frontend and backend in separate terminals.
+
+**Terminal 1 — Backend**
+
+```bash
+cd backend
+npm run dev
+```
+
+**Terminal 2 — Frontend**
+
+```bash
+cd frontend
+npm run dev
+```
+
+Press `Ctrl + C` in either terminal to stop its server.
+
 ## Brief Project Description
 
 The AutoParts Store is a web-based system that allows customers to browse and purchase automotive parts online.
