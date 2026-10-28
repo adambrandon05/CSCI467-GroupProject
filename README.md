@@ -70,12 +70,6 @@ Once the Express server files have been implemented, run:
 npm run dev
 ```
 
-The backend is intended to run at:
-
-http://localhost:5000
-
-**Current status:** Backend development is still in progress. This command requires the Express entry point and npm development script to be configured.
-
 ## 3. Frontend Setup
 
 Open another terminal and navigate to the frontend directory from the project root:
@@ -95,12 +89,6 @@ Start React:
 ```bash
 npm run dev
 ```
-
-Open the local URL displayed in the terminal, typically:
-
-http://localhost:5173/
-
-The React development server automatically updates when you save changes.
 
 ## 4. Running the Project
 
