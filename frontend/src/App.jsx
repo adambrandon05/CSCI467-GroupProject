@@ -1,4 +1,12 @@
 import { useEffect, useState } from 'react';
+import './App.css';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import AuthForm from './Login/AuthForm';
+import Home from './Pages/Home';
+import About from './Pages/About';
+import Shop from './Pages/Shop';
+import Cart from './Pages/Cart';
+import ChckOut from './Pages/ChckOut';
 
 function App() {
     const [message, setMessage] = useState('Connecting...');
@@ -11,11 +19,17 @@ function App() {
     }, []);
 
     return (
-        <div>
-            <h1>Auto Parts Store</h1>
-            <p>{message}</p>
-        </div>
+        <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<AuthForm />} />
+        <Route path="/home" element={<Home />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/shop" element={<Shop />} />
+        <Route path="/mycart" element={<Cart />} />
+        <Route path="/checkout" element={<ChckOut />} />
+      </Routes>
+    </BrowserRouter>
     );
-}
+}  
 
 export default App;
