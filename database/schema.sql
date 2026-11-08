@@ -1,83 +1,154 @@
-CREATE TABLE `Products`(
-    `Product ID` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `Name` TEXT NOT NULL,
+
+CREATE DATABASE IF NOT EXISTS auto_parts;
+USE auto_parts;
+
+-- Users
+CREATE TABLE `Users` (
+    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `Name` VARCHAR(100) NOT NULL,
+    `Email` VARCHAR(255) NOT NULL UNIQUE,
+    `Password` VARCHAR(255) NOT NULL,
+    `Role` VARCHAR(20) NOT NULL DEFAULT 'customer'
+);
+
+-- Products
+CREATE TABLE `Products` (
+    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `Name` VARCHAR(255) NOT NULL,
     `Description` TEXT NOT NULL,
-    `Price` DECIMAL(8, 2) NOT NULL,
-    `Weight` DECIMAL(8, 2) NOT NULL,
-    `Category` TEXT NOT NULL
+    `Price` DECIMAL(8,2) NOT NULL,
+    `Weight` DECIMAL(8,2) NOT NULL,
+    `Category` VARCHAR(100) NOT NULL
 );
-CREATE TABLE `Inventory`(
-    `Inventory ID` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `Product ID` INT NOT NULL,
-    `available quantity` INT NOT NULL,
-    PRIMARY KEY(`Product ID`)
+
+-- Inventory
+CREATE TABLE `Inventory` (
+    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `product_id` INT UNSIGNED NOT NULL UNIQUE,
+    `available quantity` INT NOT NULL DEFAULT 0,
+
+    FOREIGN KEY (`product_id`)
+        REFERENCES `Products` (`id`)
 );
-CREATE TABLE `Items in Cart`(
-    `cart item ID` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `cart ID` INT NOT NULL,
-    `Product ID` INT NOT NULL,
-    `Quantity` INT NOT NULL
+
+-- Carts
+CREATE TABLE `Carts` (
+    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `user_id` INT UNSIGNED NULL,
+    `status` VARCHAR(20) NOT NULL DEFAULT 'active',
+
+    FOREIGN KEY (`user_id`)
+        REFERENCES `Users` (`id`) ON DELETE SET NULL
 );
-CREATE TABLE `Orderd Items`(
-    `Ordered Item ID` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `Order ID` INT NOT NULL,
-    `Product ID` INT NOT NULL,
+
+-- Items in Cart
+CREATE TABLE `Items in Cart` (
+    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `cart_id` INT UNSIGNED NOT NULL,
+    `product_id` INT UNSIGNED NOT NULL,
     `Quantity` INT NOT NULL,
-    `Unit Price` DECIMAL(8, 2) NOT NULL
+
+    UNIQUE (`cart_id`, `product_id`),
+
+    FOREIGN KEY (`cart_id`)
+        REFERENCES `Carts` (`id`) ON DELETE CASCADE,
+
+    FOREIGN KEY (`product_id`)
+        REFERENCES `Products` (`id`)
 );
-CREATE TABLE `Inventory Transactions`(
-    `Transaction ID` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `Product ID` INT NOT NULL,
-    `User ID` INT NOT NULL,
-    `Quantity change` INT NOT NULL,
-    `Transaction type` CHAR(255) NOT NULL,
-    `Transaction date` DATETIME NOT NULL
+
+-- Shipping Rates
+CREATE TABLE `Shipping Rates` (
+    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `Min weight` DECIMAL(8,2) NOT NULL,
+    `Max Weight` DECIMAL(8,2) NOT NULL,
+    `Charge` DECIMAL(8,2) NOT NULL
 );
-CREATE TABLE `Carts`(
-    `Cart ID` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `User ID` INT NOT NULL,
-    `status` TEXT NOT NULL
+
+-- Orders
+CREATE TABLE `Orders` (
+    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `user_id` INT UNSIGNED NULL,
+    `Guest Email` VARCHAR(255) NULL,
+    `Order date` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `Total` DECIMAL(10,2) NOT NULL,
+    `Status` VARCHAR(30) NOT NULL DEFAULT 'pending',
+    `Shipping Address` TEXT NOT NULL,
+
+    FOREIGN KEY (`user_id`)
+        REFERENCES `Users` (`id`) ON DELETE SET NULL
 );
-CREATE TABLE `Reviews`(
-    `Review ID` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `User ID` INT NOT NULL,
-    `Product ID` INT NOT NULL,
+
+-- Ordered Items
+CREATE TABLE `Ordered Items` (
+    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `order_id` INT UNSIGNED NOT NULL,
+    `product_id` INT UNSIGNED NOT NULL,
+    `Quantity` INT NOT NULL,
+    `Unit Price` DECIMAL(8,2) NOT NULL,
+
+    FOREIGN KEY (`order_id`)
+        REFERENCES `Orders` (`id`) ON DELETE CASCADE,
+
+    FOREIGN KEY (`product_id`)
+        REFERENCES `Products` (`id`)
+);
+
+-- Shipments
+CREATE TABLE `Shipments` (
+    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `order_id` INT UNSIGNED NOT NULL,
+    `rate_id` INT UNSIGNED NOT NULL,
+    `Tracking number` VARCHAR(100) NULL,
+    `Shipping status` VARCHAR(30) NOT NULL DEFAULT 'pending',
+    `Shipping cost` DECIMAL(8,2) NOT NULL,
+
+    FOREIGN KEY (`order_id`)
+        REFERENCES `Orders` (`id`),
+
+    FOREIGN KEY (`rate_id`)
+        REFERENCES `Shipping Rates` (`id`)
+);
+
+-- Payments
+CREATE TABLE `Payments` (
+    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `order_id` INT UNSIGNED NOT NULL,
+    `Amount` DECIMAL(10,2) NOT NULL,
+    `Payment status` VARCHAR(30) NOT NULL,
+    `Payment reference` VARCHAR(255) NOT NULL,
+
+    FOREIGN KEY (`order_id`)
+        REFERENCES `Orders` (`id`)
+);
+
+-- Reviews
+CREATE TABLE `Reviews` (
+    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `user_id` INT UNSIGNED NOT NULL,
+    `product_id` INT UNSIGNED NOT NULL,
     `Rating` INT NOT NULL,
-    `Comment` TEXT NOT NULL
+    `Comment` TEXT NOT NULL,
+
+    FOREIGN KEY (`user_id`)
+        REFERENCES `Users` (`id`),
+
+    FOREIGN KEY (`product_id`)
+        REFERENCES `Products` (`id`)
 );
-CREATE TABLE `Shipping Rates`(
-    `Rate ID` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `Min weight` DECIMAL(8, 2) NOT NULL,
-    `Max Weight` DECIMAL(8, 2) NOT NULL,
-    `Charge` DECIMAL(8, 2) NOT NULL
-);
-CREATE TABLE `Orders`(
-    `Order ID` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `User ID` INT NOT NULL,
-    `Order date` DATETIME NOT NULL,
-    `Total` DECIMAL(8, 2) NOT NULL,
-    `Status` TEXT NOT NULL,
-    `Shipping Addres` TEXT NOT NULL
-);
-CREATE TABLE `Shipments`(
-    `Shipment ID` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `Order ID` INT NOT NULL,
-    `Rate ID` INT NOT NULL,
-    `Tracking number` INT NOT NULL,
-    `Shipping status` TEXT NOT NULL,
-    `Shipping cost` DECIMAL(8, 2) NOT NULL
-);
-CREATE TABLE `Payments`(
-    `Payment ID` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `Order ID` INT NOT NULL,
-    `Amount` DECIMAL(8, 2) NOT NULL,
-    `Payment status` TEXT NOT NULL,
-    `Payment reference` TEXT NOT NULL
-);
-CREATE TABLE `Users`(
-    `User ID` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `Name` TEXT NOT NULL,
-    `Email` TEXT NOT NULL,
-    `Password` TEXT NOT NULL,
-    `Role` TEXT NOT NULL
+
+-- Inventory Transactions
+CREATE TABLE `Inventory Transactions` (
+    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `product_id` INT UNSIGNED NOT NULL,
+    `user_id` INT UNSIGNED NOT NULL,
+    `Quantity change` INT NOT NULL,
+    `Transaction type` VARCHAR(100) NOT NULL,
+    `Transaction date` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (`product_id`)
+        REFERENCES `Products` (`id`),
+
+    FOREIGN KEY (`user_id`)
+        REFERENCES `Users` (`id`)
 );
