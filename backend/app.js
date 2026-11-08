@@ -4,12 +4,15 @@ const db = require('./config/database');
 
 const app = express();
 const productRoutes = require('./routes/productRoutes');
+const authRoutes = require('./routes/authRoutes');
 
-// Use product routes
-app.use('/api/products', productRoutes);
-
+// Middleware
 app.use(cors());
 app.use(express.json());
+
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/products', productRoutes);
 
 // Temporary test endpoint
 app.get('/api/test', (req, res) => {
