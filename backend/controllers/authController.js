@@ -1,21 +1,30 @@
 const db = require('../config/database');
 
-// Register a new user
+// Register new user
 exports.register = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { name, email, password } = req.body;
 
         // Check required fields
-        if (!email || !password) {
+        if (
+            typeof name !== 'string' ||
+            typeof email !== 'string' ||
+            typeof password !== 'string' ||
+            !name.trim() ||
+            !email.trim() ||
+            !password
+        ) {
             return res.status(400).json({
-                error: 'Email and password are required'
+                error: 'Name, email, and password are required'
             });
         }
 
+        const normalizedEmail = email.trim().toLowerCase();
+
         // Check if email already exists
         const existingUsers = await db.query(
-            'SELECT id FROM users WHERE email = ?',
-            [email]
+            'SELECT id FROM `Users` WHERE `Email` = ?',
+            [normalizedEmail]
         );
 
         if (existingUsers.length > 0) {
@@ -24,10 +33,12 @@ exports.register = async (req, res) => {
             });
         }
 
-        // Create customer account
+        // Insert new customer
         const result = await db.query(
-            'INSERT INTO users (email, password, role) VALUES (?, ?, ?)',
-            [email, password, 'customer']
+            `INSERT INTO \`Users\`
+                (\`Name\`, \`Email\`, \`Password\`, \`Role\`)
+             VALUES (?, ?, ?, ?)`,
+            [name.trim(), normalizedEmail, password, 'customer']
         );
 
         res.status(201).json({
@@ -38,19 +49,30 @@ exports.register = async (req, res) => {
     } catch (error) {
         console.error(error);
 
+        if (error.code === 'ER_DUP_ENTRY') {
+            return res.status(409).json({
+                error: 'Email already registered'
+            });
+        }
+
         res.status(500).json({
-            error: 'Failed to register user'
+            error: 'Registration failed'
         });
     }
 };
 
-// Login an existing user
+// Login existing user
 exports.login = async (req, res) => {
     try {
         const { email, password } = req.body;
 
         // Check required fields
-        if (!email || !password) {
+        if (
+            typeof email !== 'string' ||
+            typeof password !== 'string' ||
+            !email.trim() ||
+            !password
+        ) {
             return res.status(400).json({
                 error: 'Email and password are required'
             });
@@ -58,11 +80,18 @@ exports.login = async (req, res) => {
 
         // Find user by email
         const users = await db.query(
-            'SELECT id, email, password, role FROM users WHERE email = ?',
-            [email]
+            `SELECT
+                \`id\`,
+                \`Name\` AS name,
+                \`Email\` AS email,
+                \`Password\` AS password,
+                \`Role\` AS role
+             FROM \`Users\`
+             WHERE \`Email\` = ?`,
+            [email.trim().toLowerCase()]
         );
 
-        // Check credentials
+        // Verify credentials
         if (users.length === 0 ||
             users[0].password !== password) {
             return res.status(401).json({
@@ -77,6 +106,7 @@ exports.login = async (req, res) => {
             message: 'Login successful',
             user: {
                 id: user.id,
+                name: user.name,
                 email: user.email,
                 role: user.role
             }
@@ -86,7 +116,7 @@ exports.login = async (req, res) => {
         console.error(error);
 
         res.status(500).json({
-            error: 'Failed to login'
+            error: 'Login failed'
         });
     }
 };

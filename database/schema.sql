@@ -2,7 +2,6 @@
 CREATE DATABASE IF NOT EXISTS auto_parts;
 USE auto_parts;
 
--- Users
 CREATE TABLE `Users` (
     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `Name` VARCHAR(100) NOT NULL,
@@ -11,7 +10,7 @@ CREATE TABLE `Users` (
     `Role` VARCHAR(20) NOT NULL DEFAULT 'customer'
 );
 
--- Products
+
 CREATE TABLE `Products` (
     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `Name` VARCHAR(255) NOT NULL,
@@ -19,9 +18,8 @@ CREATE TABLE `Products` (
     `Price` DECIMAL(8,2) NOT NULL,
     `Weight` DECIMAL(8,2) NOT NULL,
     `Category` VARCHAR(100) NOT NULL
-);
+)
 
--- Inventory
 CREATE TABLE `Inventory` (
     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `product_id` INT UNSIGNED NOT NULL UNIQUE,
@@ -31,7 +29,7 @@ CREATE TABLE `Inventory` (
         REFERENCES `Products` (`id`)
 );
 
--- Carts
+
 CREATE TABLE `Carts` (
     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `user_id` INT UNSIGNED NULL,
@@ -41,7 +39,7 @@ CREATE TABLE `Carts` (
         REFERENCES `Users` (`id`) ON DELETE SET NULL
 );
 
--- Items in Cart
+
 CREATE TABLE `Items in Cart` (
     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `cart_id` INT UNSIGNED NOT NULL,
@@ -57,7 +55,7 @@ CREATE TABLE `Items in Cart` (
         REFERENCES `Products` (`id`)
 );
 
--- Shipping Rates
+
 CREATE TABLE `Shipping Rates` (
     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `Min weight` DECIMAL(8,2) NOT NULL,
@@ -65,7 +63,7 @@ CREATE TABLE `Shipping Rates` (
     `Charge` DECIMAL(8,2) NOT NULL
 );
 
--- Orders
+
 CREATE TABLE `Orders` (
     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `user_id` INT UNSIGNED NULL,
@@ -79,7 +77,7 @@ CREATE TABLE `Orders` (
         REFERENCES `Users` (`id`) ON DELETE SET NULL
 );
 
--- Ordered Items
+
 CREATE TABLE `Ordered Items` (
     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `order_id` INT UNSIGNED NOT NULL,
@@ -94,7 +92,7 @@ CREATE TABLE `Ordered Items` (
         REFERENCES `Products` (`id`)
 );
 
--- Shipments
+
 CREATE TABLE `Shipments` (
     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `order_id` INT UNSIGNED NOT NULL,
@@ -110,7 +108,7 @@ CREATE TABLE `Shipments` (
         REFERENCES `Shipping Rates` (`id`)
 );
 
--- Payments
+
 CREATE TABLE `Payments` (
     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `order_id` INT UNSIGNED NOT NULL,
@@ -122,7 +120,7 @@ CREATE TABLE `Payments` (
         REFERENCES `Orders` (`id`)
 );
 
--- Reviews
+
 CREATE TABLE `Reviews` (
     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `user_id` INT UNSIGNED NOT NULL,
@@ -137,7 +135,7 @@ CREATE TABLE `Reviews` (
         REFERENCES `Products` (`id`)
 );
 
--- Inventory Transactions
+
 CREATE TABLE `Inventory Transactions` (
     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `product_id` INT UNSIGNED NOT NULL,
