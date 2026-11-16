@@ -1,6 +1,7 @@
 const db = require('../config/database');
 
 const isPositiveInt = (value) => Number.isInteger(value) && value > 0;
+const userId = req.session.userId;
 
 async function getOrCreateCartId(userId) {
     const carts = await db.query(

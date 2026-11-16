@@ -3,6 +3,10 @@ const router = express.Router();
 
 const cartController = require('../controllers/cartController');
 
+const requireAuth = require('../middleware/authMiddleware');
+
+router.use(requireAuth);
+
 router.get('/:userId', cartController.getCart);
 router.post('/items', cartController.addItem);
 router.patch('/items/:id', cartController.updateItem);

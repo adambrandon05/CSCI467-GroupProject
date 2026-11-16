@@ -1,5 +1,29 @@
 const db = require('../config/database');
 
+req.session.regenerate((err) => {
+    if (err) {
+        return res.status(500).json({ error: 'Session error' });
+    }
+
+    req.session.userId = user.id;
+
+    req.session.save((err) => {
+        if (err) {
+            return res.status(500).json({ error: 'Session error' });
+        }
+
+        res.json({
+            message: 'Login successful',
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
+        });
+    });
+});
+
 // Register new user
 exports.register = async (req, res) => {
     try {
