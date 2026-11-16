@@ -1,29 +1,5 @@
 const db = require('../config/database');
 
-req.session.regenerate((err) => {
-    if (err) {
-        return res.status(500).json({ error: 'Session error' });
-    }
-
-    req.session.userId = user.id;
-
-    req.session.save((err) => {
-        if (err) {
-            return res.status(500).json({ error: 'Session error' });
-        }
-
-        res.json({
-            message: 'Login successful',
-            user: {
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                role: user.role
-            }
-        });
-    });
-});
-
 // Register new user
 exports.register = async (req, res) => {
     try {
@@ -116,8 +92,10 @@ exports.login = async (req, res) => {
         );
 
         // Verify credentials
-        if (users.length === 0 ||
-            users[0].password !== password) {
+        if (
+            users.length === 0 ||
+            users[0].password !== password
+        ) {
             return res.status(401).json({
                 error: 'Invalid email or password'
             });
@@ -125,11 +103,71 @@ exports.login = async (req, res) => {
 
         const user = users[0];
 
-        // Return user information
+        // Create a new session after successful login
+        req.session.regenerate((err) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({
+                    error: 'Session error'
+                });
+            }
+
+            req.session.userId = Number(user.id);
+
+            req.session.save((err) => {
+                if (err) {
+                    console.error(err);
+                    return res.status(500).json({
+                        error: 'Session error'
+                    });
+                }
+
+                res.json({
+                    message: 'Login successful',
+                    user: {
+                        id: Number(user.id),
+                        name: user.name,
+                        email: user.email,
+                        role: user.role
+                    }
+                });
+            });
+        });
+
+    } catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            error: 'Login failed'
+        });
+    }
+};
+
+// Check currently logged-in user
+exports.me = async (req, res) => {
+    try {
+        const users = await db.query(
+            `SELECT
+                \`id\`,
+                \`Name\` AS name,
+                \`Email\` AS email,
+                \`Role\` AS role
+             FROM \`Users\`
+             WHERE \`id\` = ?`,
+            [req.session.userId]
+        );
+
+        if (users.length === 0) {
+            return res.status(401).json({
+                error: 'User not found'
+            });
+        }
+
+        const user = users[0];
+
         res.json({
-            message: 'Login successful',
             user: {
-                id: user.id,
+                id: Number(user.id),
                 name: user.name,
                 email: user.email,
                 role: user.role
@@ -140,7 +178,27 @@ exports.login = async (req, res) => {
         console.error(error);
 
         res.status(500).json({
-            error: 'Login failed'
+            error: 'Failed to retrieve user'
         });
     }
+};
+
+// Logout
+exports.logout = (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({
+                error: 'Logout failed'
+            });
+        }
+
+        res.clearCookie('connect.sid', {
+            path: '/'
+        });
+
+        res.json({
+            message: 'Logged out successfully'
+        });
+    });
 };

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -20,11 +19,11 @@ export default function AuthForm() {
         setLoading(true);
 
         try {
-            // Send login credentials to backend
             const response = await fetch(
                 'http://localhost:5000/api/auth/login',
                 {
                     method: 'POST',
+                    credentials: 'include',
                     headers: {
                         'Content-Type': 'application/json'
                     },
@@ -37,14 +36,12 @@ export default function AuthForm() {
 
             const data = await response.json();
 
-            // Check for login errors
             if (!response.ok) {
                 setError(data.error || 'Login failed');
                 return;
             }
 
-            // Login successful
-            localStorage.setItem('user', JSON.stringify(data.user));            
+            localStorage.removeItem('user');
             navigate('/home');
 
         } catch (error) {
@@ -60,7 +57,6 @@ export default function AuthForm() {
         e.preventDefault();
         setError('');
 
-        // Verify passwords match
         if (password !== confirmPassword) {
             setError('Passwords do not match');
             return;
@@ -86,13 +82,11 @@ export default function AuthForm() {
 
             const data = await response.json();
 
-            // Check for registration errors
             if (!response.ok) {
                 setError(data.error || 'Registration failed');
                 return;
             }
 
-            // Registration successful
             alert('Account created successfully! Please login.');
 
             setPassword('');
