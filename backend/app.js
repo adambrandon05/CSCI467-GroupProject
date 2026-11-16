@@ -5,6 +5,7 @@ const db = require('./config/database');
 const app = express();
 const productRoutes = require('./routes/productRoutes');
 const authRoutes = require('./routes/authRoutes');
+const cartRoutes = require('./routes/cartRoutes');
 
 // Middleware
 app.use(cors());
@@ -13,6 +14,7 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/cart', cartRoutes);
 
 // Temporary test endpoint
 app.get('/api/test', (req, res) => {
