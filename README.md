@@ -120,12 +120,12 @@ The system will also include several internal dashboards used by employees and a
 
 ## Current To-Do
 
-### Stand-up — Week of 10/26
+### Stand-up — Week of 11/4
 
-- [ ] Set up initial project files
-- [ ] Implement API endpoints
-- [ ] Create database schema and insert sample data
-- [ ] Develop basic prototype
+- [ ] Database insertion file 
+- [ ] create the products page front/backend
+- [ ] Add route/controllers for login
+- [ ] work on optimizing various already done web pages
 
 
 ## Initial Project Goals

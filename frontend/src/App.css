@@ -306,6 +306,15 @@ body {
   color: #8dd8ff;
 }
 
+.navbar-logout {
+  background: none;
+  border: 1px solid white;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
 /* Keep the navbar usable on smaller screens */
 @media (max-width: 500px) {
   .navbar {

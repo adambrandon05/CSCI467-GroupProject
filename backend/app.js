@@ -1,36 +1,38 @@
+
 const express = require('express');
 const cors = require('cors');
+const session = require('express-session');
 const db = require('./config/database');
 
-const app = express();
 const productRoutes = require('./routes/productRoutes');
+const authRoutes = require('./routes/authRoutes');
+const cartRoutes = require('./routes/cartRoutes');
 
-// Use product routes
-app.use('/api/products', productRoutes);
+const app = express();
 
-app.use(cors());
+// Middleware
+app.use(cors({
+    origin: 'http://localhost:5173',
+    credentials: true
+}));
+
 app.use(express.json());
 
-// Temporary test endpoint
-app.get('/api/test', (req, res) => {
-    res.json({ message: 'Express backend working!' });
-});
-// temporary database test endpoint
-app.get('/api/db-test', async (req, res) => {
-    try {
-        const result = await db.query('SELECT 1 AS connected');
-
-        res.json({
-            message: 'MariaDB connected successfully!',
-            result
-        });
-    } catch (error) {
-        console.error(error);
-
-        res.status(500).json({
-            error: 'Database connection failed'
-        });
+// Sessions must be BEFORE routes
+app.use(session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production'
     }
-});
+}));
+
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/cart', cartRoutes);
 
 module.exports = app;
