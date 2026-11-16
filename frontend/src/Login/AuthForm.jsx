@@ -44,7 +44,7 @@ export default function AuthForm() {
             }
 
             // Login successful
-            console.log('Logged in:', data.user);
+            localStorage.setItem('user', JSON.stringify(data.user));            
             navigate('/home');
 
         } catch (error) {
