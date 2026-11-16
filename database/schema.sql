@@ -18,7 +18,7 @@ CREATE TABLE `Products` (
     `Price` DECIMAL(8,2) NOT NULL,
     `Weight` DECIMAL(8,2) NOT NULL,
     `Category` VARCHAR(100) NOT NULL
-)
+);
 
 CREATE TABLE `Inventory` (
     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
