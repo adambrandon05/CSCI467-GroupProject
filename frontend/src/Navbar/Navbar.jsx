@@ -41,6 +41,8 @@ export default function Navbar() {
                 >
                     Logout
                 </button>
+                <Link to="/checkout">Checkout</Link>
+                <Link to="/Products">Products</Link>
             </div>
         </nav>
     );
