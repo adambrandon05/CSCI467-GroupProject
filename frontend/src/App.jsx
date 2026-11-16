@@ -7,6 +7,8 @@ import About from './Pages/About';
 import Shop from './Pages/Shop';
 import Cart from './Pages/Cart';
 import ChckOut from './Pages/ChckOut';
+import Products from './Pages/Products';
+import ProductDetails from './Pages/ProductDetails';
 
 function App() {
     const [message, setMessage] = useState('Connecting...');
@@ -27,6 +29,8 @@ function App() {
         <Route path="/shop" element={<Shop />} />
         <Route path="/mycart" element={<Cart />} />
         <Route path="/checkout" element={<ChckOut />} />
+        <Route path="/products" element={<Products />} />
+        <Route path="/products/:id" element={<ProductDetails />} />
       </Routes>
     </BrowserRouter>
     );

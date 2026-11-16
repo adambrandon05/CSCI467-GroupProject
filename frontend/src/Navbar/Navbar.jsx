@@ -11,6 +11,7 @@ export default function Navbar() {
                 <Link to="/shop">Shop</Link>
                 <Link to="/mycart">My Cart</Link>
                 <Link to="/checkout">Checkout</Link>
+                <Link to="/Products">Products</Link>
             </div>
         </nav>
     );
