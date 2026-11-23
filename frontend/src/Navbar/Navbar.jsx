@@ -1,7 +1,30 @@
+
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 export default function Navbar() {
     const navigate = useNavigate();
+    const [role, setRole] = useState(null);
+
+    useEffect(() => {
+        async function getUser() {
+            try {
+                const response = await fetch(
+                    'http://localhost:5000/api/auth/me',
+                    { credentials: 'include' }
+                );
+
+                if (!response.ok) return;
+
+                const data = await response.json();
+                setRole(data.user.role);
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        getUser();
+    }, []);
 
     const handleLogout = async () => {
         try {
@@ -19,7 +42,6 @@ export default function Navbar() {
 
             localStorage.removeItem('user');
             navigate('/');
-
         } catch (error) {
             console.error('Logout failed:', error);
             alert('Could not log out. Please try again.');
@@ -34,6 +56,12 @@ export default function Navbar() {
                 <Link to="/home">Home</Link>
                 <Link to="/shop">Shop</Link>
                 <Link to="/mycart">My Cart</Link>
+                <Link to="/checkout">Checkout</Link>
+                <Link to="/products">Products</Link>
+
+                {(role === 'employee' || role === 'admin') && (
+                    <Link to="/warehouse">Warehouse</Link>
+                )}
 
                 <button
                     className="navbar-logout"
@@ -41,8 +69,6 @@ export default function Navbar() {
                 >
                     Logout
                 </button>
-                <Link to="/checkout">Checkout</Link>
-                <Link to="/Products">Products</Link>
             </div>
         </nav>
     );

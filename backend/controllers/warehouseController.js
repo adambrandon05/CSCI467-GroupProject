@@ -1,4 +1,3 @@
-
 const db = require('../config/database');
 
 // Get orders waiting to ship
@@ -15,14 +14,12 @@ exports.getOrders = async (req, res) => {
     }
 };
 
-// Get an individual order and its products
+// Get order details
 exports.getOrderById = async (req, res) => {
     try {
-        const orderId = req.params.id;
-
         const orders = await db.query(
             'SELECT * FROM orders WHERE id = ?',
-            [orderId]
+            [req.params.id]
         );
 
         if (orders.length === 0) {
@@ -32,46 +29,38 @@ exports.getOrderById = async (req, res) => {
         }
 
         const items = await db.query(`
-            SELECT
-                products.name,
-                order_items.quantity,
-                order_items.unit_price
+            SELECT products.name, order_items.quantity,
+                   order_items.unit_price
             FROM order_items
-            JOIN products
-                ON order_items.product_id = products.id
+            JOIN products ON products.id = order_items.product_id
             WHERE order_items.order_id = ?
-        `, [orderId]);
+        `, [req.params.id]);
+
+        const payments = await db.query(
+            'SELECT * FROM payments WHERE order_id = ?',
+            [req.params.id]
+        );
 
         const shipments = await db.query(
             'SELECT * FROM shipments WHERE order_id = ?',
-            [orderId]
+            [req.params.id]
         );
 
         res.json({
             order: orders[0],
             items,
+            payments,
             shipments
         });
+
     } catch (error) {
         console.error(error);
-        res.status(500).json({
-            error: 'Failed to get order details'
-        });
+        res.status(500).json({ error: 'Failed to get order details' });
     }
 };
 
-// Mark an order as shipped
+// Mark order as shipped
 exports.shipOrder = async (req, res) => {
-    const orderId = req.params.id;
-    const { trackingNumber } = req.body;
-
-    if (typeof trackingNumber !== 'string' ||
-        !trackingNumber.trim()) {
-        return res.status(400).json({
-            error: 'Tracking number required'
-        });
-    }
-
     let conn;
 
     try {
@@ -79,26 +68,22 @@ exports.shipOrder = async (req, res) => {
         await conn.beginTransaction();
 
         const order = await conn.query(
-            `UPDATE orders
-             SET status = 'shipped'
+            `UPDATE orders SET status = 'shipped'
              WHERE id = ? AND status = 'authorized'`,
-            [orderId]
+            [req.params.id]
         );
 
         if (Number(order.affectedRows) === 0) {
             await conn.rollback();
             return res.status(409).json({
-                error: 'Order is not authorized or does not exist'
+                error: 'Order not found or already shipped'
             });
         }
 
         const shipment = await conn.query(
-            `UPDATE shipments
-             SET shipping_status = 'shipped',
-                 tracking_number = ?
-             WHERE order_id = ?
-               AND shipping_status = 'pending'`,
-            [trackingNumber.trim(), orderId]
+            `UPDATE shipments SET shipping_status = 'shipped'
+             WHERE order_id = ? AND shipping_status = 'pending'`,
+            [req.params.id]
         );
 
         if (Number(shipment.affectedRows) === 0) {
@@ -109,8 +94,8 @@ exports.shipOrder = async (req, res) => {
         }
 
         await conn.commit();
-
         res.json({ message: 'Order shipped successfully' });
+
     } catch (error) {
         if (conn) {
             try {
@@ -121,9 +106,7 @@ exports.shipOrder = async (req, res) => {
         }
 
         console.error(error);
-        res.status(500).json({
-            error: 'Failed to ship order'
-        });
+        res.status(500).json({ error: 'Failed to ship order' });
     } finally {
         if (conn) conn.release();
     }
