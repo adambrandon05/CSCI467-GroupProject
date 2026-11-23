@@ -53,7 +53,7 @@ export default function Products()
 
                     {filteredProducts.map((product) => (
                         <div key={product.id} style={{ color: 'black' }}>
-                            <Link to={'/products/${product.id}'}
+                            <Link to={`/products/${product.id}`}                            
                             style={{ color: 'black', textDecoration: 'none'}}>
                             <img
                                 src={product.image}
