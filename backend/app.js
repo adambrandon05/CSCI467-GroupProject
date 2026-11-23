@@ -2,11 +2,11 @@
 const express = require('express');
 const cors = require('cors');
 const session = require('express-session');
-const db = require('./config/database');
 
 const productRoutes = require('./routes/productRoutes');
 const authRoutes = require('./routes/authRoutes');
 const cartRoutes = require('./routes/cartRoutes');
+const warehouseRoutes = require('./routes/warehouseRoutes');
 
 const app = express();
 
@@ -26,7 +26,7 @@ app.use(session({
     cookie: {
         httpOnly: true,
         sameSite: 'lax',
-        secure: process.env.NODE_ENV === 'production'
+        secure: false
     }
 }));
 
@@ -34,5 +34,6 @@ app.use(session({
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
+app.use('/api/warehouse', warehouseRoutes);
 
 module.exports = app;

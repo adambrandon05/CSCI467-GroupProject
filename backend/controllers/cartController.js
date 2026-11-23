@@ -3,10 +3,10 @@ const db = require('../config/database');
 const isPositiveInt = (value) =>
     Number.isInteger(value) && value > 0;
 
-// Find or create an active cart
+// Find or create active cart
 async function getOrCreateCartId(userId) {
     const carts = await db.query(
-        "SELECT `id` FROM `Carts` WHERE `user_id` = ? AND `status` = 'active'",
+        "SELECT id FROM carts WHERE user_id = ? AND status = 'active'",
         [userId]
     );
 
@@ -15,17 +15,19 @@ async function getOrCreateCartId(userId) {
     }
 
     const result = await db.query(
-        'INSERT INTO `Carts` (`user_id`) VALUES (?)',
+        'INSERT INTO carts (user_id) VALUES (?)',
         [userId]
     );
 
     return Number(result.insertId);
 }
 
-// Check product inventory
+// Get available inventory
 async function getStock(productId) {
     const rows = await db.query(
-        'SELECT `available quantity` AS stock FROM `Inventory` WHERE `product_id` = ?',
+        `SELECT available_quantity AS stock
+         FROM inventory
+         WHERE product_id = ?`,
         [productId]
     );
 
@@ -36,15 +38,19 @@ async function getStock(productId) {
 exports.getCart = async (req, res) => {
     try {
         const userId = req.session.userId;
-
         const cartId = await getOrCreateCartId(userId);
 
         const items = await db.query(
-            'SELECT i.`id`, i.`product_id` AS productId, p.`Name` AS name, ' +
-            'p.`Price` AS price, p.`Weight` AS weight, i.`Quantity` AS quantity ' +
-            'FROM `Items in Cart` i ' +
-            'JOIN `Products` p ON p.`id` = i.`product_id` ' +
-            'WHERE i.`cart_id` = ?',
+            `SELECT
+                i.id,
+                i.product_id AS productId,
+                p.name,
+                p.price,
+                p.weight,
+                i.quantity
+             FROM cart_items i
+             JOIN products p ON p.id = i.product_id
+             WHERE i.cart_id = ?`,
             [cartId]
         );
 
@@ -52,14 +58,13 @@ exports.getCart = async (req, res) => {
 
     } catch (error) {
         console.error(error);
-
         res.status(500).json({
             error: 'Failed to retrieve cart'
         });
     }
 };
 
-// Add item to authenticated user's cart
+// Add product to cart
 exports.addItem = async (req, res) => {
     try {
         const userId = req.session.userId;
@@ -83,9 +88,9 @@ exports.addItem = async (req, res) => {
         const cartId = await getOrCreateCartId(userId);
 
         const existing = await db.query(
-            'SELECT `Quantity` AS quantity ' +
-            'FROM `Items in Cart` ' +
-            'WHERE `cart_id` = ? AND `product_id` = ?',
+            `SELECT quantity
+             FROM cart_items
+             WHERE cart_id = ? AND product_id = ?`,
             [cartId, productId]
         );
 
@@ -102,10 +107,11 @@ exports.addItem = async (req, res) => {
         }
 
         await db.query(
-            'INSERT INTO `Items in Cart` ' +
-            '(`cart_id`, `product_id`, `Quantity`) ' +
-            'VALUES (?, ?, ?) ' +
-            'ON DUPLICATE KEY UPDATE `Quantity` = VALUES(`Quantity`)',
+            `INSERT INTO cart_items
+                (cart_id, product_id, quantity)
+             VALUES (?, ?, ?)
+             ON DUPLICATE KEY UPDATE
+                quantity = VALUES(quantity)`,
             [cartId, productId, newQuantity]
         );
 
@@ -115,7 +121,6 @@ exports.addItem = async (req, res) => {
 
     } catch (error) {
         console.error(error);
-
         res.status(500).json({
             error: 'Failed to add item to cart'
         });
@@ -135,15 +140,14 @@ exports.updateItem = async (req, res) => {
             });
         }
 
-        // Check that this item belongs to the logged-in user
+        // Verify that this item belongs to this user
         const items = await db.query(
-            `SELECT i.\`product_id\`
-             FROM \`Items in Cart\` i
-             JOIN \`Carts\` c
-                ON i.\`cart_id\` = c.\`id\`
-             WHERE i.\`id\` = ?
-               AND c.\`user_id\` = ?
-               AND c.\`status\` = 'active'`,
+            `SELECT i.product_id
+             FROM cart_items i
+             JOIN carts c ON i.cart_id = c.id
+             WHERE i.id = ?
+               AND c.user_id = ?
+               AND c.status = 'active'`,
             [id, userId]
         );
 
@@ -163,16 +167,15 @@ exports.updateItem = async (req, res) => {
             });
         }
 
-        // Update only if the user owns this cart
         const result = await db.query(
-            `UPDATE \`Items in Cart\`
-             SET \`Quantity\` = ?
-             WHERE \`id\` = ?
-               AND \`cart_id\` IN (
-                   SELECT \`id\`
-                   FROM \`Carts\`
-                   WHERE \`user_id\` = ?
-                     AND \`status\` = 'active'
+            `UPDATE cart_items
+             SET quantity = ?
+             WHERE id = ?
+               AND cart_id IN (
+                   SELECT id
+                   FROM carts
+                   WHERE user_id = ?
+                     AND status = 'active'
                )`,
             [quantity, id, userId]
         );
@@ -189,14 +192,13 @@ exports.updateItem = async (req, res) => {
 
     } catch (error) {
         console.error(error);
-
         res.status(500).json({
             error: 'Failed to update cart item'
         });
     }
 };
 
-// Remove item from authenticated user's cart
+// Remove product from cart
 exports.removeItem = async (req, res) => {
     try {
         const id = Number(req.params.id);
@@ -209,13 +211,13 @@ exports.removeItem = async (req, res) => {
         }
 
         const result = await db.query(
-            `DELETE FROM \`Items in Cart\`
-             WHERE \`id\` = ?
-               AND \`cart_id\` IN (
-                   SELECT \`id\`
-                   FROM \`Carts\`
-                   WHERE \`user_id\` = ?
-                     AND \`status\` = 'active'
+            `DELETE FROM cart_items
+             WHERE id = ?
+               AND cart_id IN (
+                   SELECT id
+                   FROM carts
+                   WHERE user_id = ?
+                     AND status = 'active'
                )`,
             [id, userId]
         );
@@ -232,7 +234,6 @@ exports.removeItem = async (req, res) => {
 
     } catch (error) {
         console.error(error);
-
         res.status(500).json({
             error: 'Failed to remove cart item'
         });

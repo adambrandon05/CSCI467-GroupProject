@@ -5,7 +5,6 @@ exports.register = async (req, res) => {
     try {
         const { name, email, password } = req.body;
 
-        // Check required fields
         if (
             typeof name !== 'string' ||
             typeof email !== 'string' ||
@@ -21,9 +20,8 @@ exports.register = async (req, res) => {
 
         const normalizedEmail = email.trim().toLowerCase();
 
-        // Check if email already exists
         const existingUsers = await db.query(
-            'SELECT id FROM `Users` WHERE `Email` = ?',
+            'SELECT id FROM users WHERE email = ?',
             [normalizedEmail]
         );
 
@@ -33,10 +31,8 @@ exports.register = async (req, res) => {
             });
         }
 
-        // Insert new customer
         const result = await db.query(
-            `INSERT INTO \`Users\`
-                (\`Name\`, \`Email\`, \`Password\`, \`Role\`)
+            `INSERT INTO users (name, email, password, role)
              VALUES (?, ?, ?, ?)`,
             [name.trim(), normalizedEmail, password, 'customer']
         );
@@ -66,7 +62,6 @@ exports.login = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        // Check required fields
         if (
             typeof email !== 'string' ||
             typeof password !== 'string' ||
@@ -78,20 +73,13 @@ exports.login = async (req, res) => {
             });
         }
 
-        // Find user by email
         const users = await db.query(
-            `SELECT
-                \`id\`,
-                \`Name\` AS name,
-                \`Email\` AS email,
-                \`Password\` AS password,
-                \`Role\` AS role
-             FROM \`Users\`
-             WHERE \`Email\` = ?`,
+            `SELECT id, name, email, password, role
+             FROM users
+             WHERE email = ?`,
             [email.trim().toLowerCase()]
         );
 
-        // Verify credentials
         if (
             users.length === 0 ||
             users[0].password !== password
@@ -103,7 +91,6 @@ exports.login = async (req, res) => {
 
         const user = users[0];
 
-        // Create a new session after successful login
         req.session.regenerate((err) => {
             if (err) {
                 console.error(err);
@@ -136,7 +123,6 @@ exports.login = async (req, res) => {
 
     } catch (error) {
         console.error(error);
-
         res.status(500).json({
             error: 'Login failed'
         });
@@ -147,13 +133,9 @@ exports.login = async (req, res) => {
 exports.me = async (req, res) => {
     try {
         const users = await db.query(
-            `SELECT
-                \`id\`,
-                \`Name\` AS name,
-                \`Email\` AS email,
-                \`Role\` AS role
-             FROM \`Users\`
-             WHERE \`id\` = ?`,
+            `SELECT id, name, email, role
+             FROM users
+             WHERE id = ?`,
             [req.session.userId]
         );
 
@@ -176,7 +158,6 @@ exports.me = async (req, res) => {
 
     } catch (error) {
         console.error(error);
-
         res.status(500).json({
             error: 'Failed to retrieve user'
         });
