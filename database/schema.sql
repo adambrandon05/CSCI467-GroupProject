@@ -2,151 +2,176 @@
 CREATE DATABASE IF NOT EXISTS auto_parts;
 USE auto_parts;
 
-CREATE TABLE `Users` (
-    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `Name` VARCHAR(100) NOT NULL,
-    `Email` VARCHAR(255) NOT NULL UNIQUE,
-    `Password` VARCHAR(255) NOT NULL,
-    `Role` VARCHAR(20) NOT NULL DEFAULT 'customer'
+-- USERS
+
+CREATE TABLE users (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(20) NOT NULL DEFAULT 'customer'
 );
 
 
-CREATE TABLE `Products` (
-    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `Name` VARCHAR(255) NOT NULL,
-    `Description` TEXT NOT NULL,
-    `Price` DECIMAL(8,2) NOT NULL,
-    `Weight` DECIMAL(8,2) NOT NULL,
-    `Category` VARCHAR(100) NOT NULL
-);
+-- PRODUCTS
 
-CREATE TABLE `Inventory` (
-    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `product_id` INT UNSIGNED NOT NULL UNIQUE,
-    `available quantity` INT NOT NULL DEFAULT 0,
-
-    FOREIGN KEY (`product_id`)
-        REFERENCES `Products` (`id`)
+CREATE TABLE products (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    price DECIMAL(8,2) NOT NULL,
+    weight DECIMAL(8,2) NOT NULL,
+    category VARCHAR(100) NOT NULL
 );
 
 
-CREATE TABLE `Carts` (
-    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `user_id` INT UNSIGNED NULL,
-    `status` VARCHAR(20) NOT NULL DEFAULT 'active',
+-- INVENTORY
 
-    FOREIGN KEY (`user_id`)
-        REFERENCES `Users` (`id`) ON DELETE SET NULL
+CREATE TABLE inventory (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    product_id INT UNSIGNED NOT NULL UNIQUE,
+    available_quantity INT NOT NULL DEFAULT 0,
+
+    FOREIGN KEY (product_id)
+        REFERENCES products(id)
 );
 
 
-CREATE TABLE `Items in Cart` (
-    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `cart_id` INT UNSIGNED NOT NULL,
-    `product_id` INT UNSIGNED NOT NULL,
-    `Quantity` INT NOT NULL,
+-- CARTS
 
-    UNIQUE (`cart_id`, `product_id`),
+CREATE TABLE carts (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'active',
 
-    FOREIGN KEY (`cart_id`)
-        REFERENCES `Carts` (`id`) ON DELETE CASCADE,
-
-    FOREIGN KEY (`product_id`)
-        REFERENCES `Products` (`id`)
+    FOREIGN KEY (user_id)
+        REFERENCES users(id) ON DELETE SET NULL
 );
 
 
-CREATE TABLE `Shipping Rates` (
-    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `Min weight` DECIMAL(8,2) NOT NULL,
-    `Max Weight` DECIMAL(8,2) NOT NULL,
-    `Charge` DECIMAL(8,2) NOT NULL
+-- CART ITEMS
+
+CREATE TABLE cart_items (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    cart_id INT UNSIGNED NOT NULL,
+    product_id INT UNSIGNED NOT NULL,
+    quantity INT NOT NULL,
+
+    UNIQUE (cart_id, product_id),
+
+    FOREIGN KEY (cart_id)
+        REFERENCES carts(id) ON DELETE CASCADE,
+
+    FOREIGN KEY (product_id)
+        REFERENCES products(id)
 );
 
 
-CREATE TABLE `Orders` (
-    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `user_id` INT UNSIGNED NULL,
-    `Guest Email` VARCHAR(255) NULL,
-    `Order date` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `Total` DECIMAL(10,2) NOT NULL,
-    `Status` VARCHAR(30) NOT NULL DEFAULT 'pending',
-    `Shipping Address` TEXT NOT NULL,
+-- SHIPPING RATES
 
-    FOREIGN KEY (`user_id`)
-        REFERENCES `Users` (`id`) ON DELETE SET NULL
+CREATE TABLE shipping_rates (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    min_weight DECIMAL(8,2) NOT NULL,
+    max_weight DECIMAL(8,2) NOT NULL,
+    charge DECIMAL(8,2) NOT NULL
 );
 
 
-CREATE TABLE `Ordered Items` (
-    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `order_id` INT UNSIGNED NOT NULL,
-    `product_id` INT UNSIGNED NOT NULL,
-    `Quantity` INT NOT NULL,
-    `Unit Price` DECIMAL(8,2) NOT NULL,
+-- ORDERS
 
-    FOREIGN KEY (`order_id`)
-        REFERENCES `Orders` (`id`) ON DELETE CASCADE,
+CREATE TABLE orders (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NULL,
+    guest_email VARCHAR(255) NULL,
+    order_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    total DECIMAL(10,2) NOT NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'pending',
+    shipping_address TEXT NOT NULL,
 
-    FOREIGN KEY (`product_id`)
-        REFERENCES `Products` (`id`)
+    FOREIGN KEY (user_id)
+        REFERENCES users(id) ON DELETE SET NULL
 );
 
 
-CREATE TABLE `Shipments` (
-    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `order_id` INT UNSIGNED NOT NULL,
-    `rate_id` INT UNSIGNED NOT NULL,
-    `Tracking number` VARCHAR(100) NULL,
-    `Shipping status` VARCHAR(30) NOT NULL DEFAULT 'pending',
-    `Shipping cost` DECIMAL(8,2) NOT NULL,
+-- ORDER ITEMS
 
-    FOREIGN KEY (`order_id`)
-        REFERENCES `Orders` (`id`),
+CREATE TABLE order_items (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    order_id INT UNSIGNED NOT NULL,
+    product_id INT UNSIGNED NOT NULL,
+    quantity INT NOT NULL,
+    unit_price DECIMAL(8,2) NOT NULL,
 
-    FOREIGN KEY (`rate_id`)
-        REFERENCES `Shipping Rates` (`id`)
+    FOREIGN KEY (order_id)
+        REFERENCES orders(id) ON DELETE CASCADE,
+
+    FOREIGN KEY (product_id)
+        REFERENCES products(id)
 );
 
 
-CREATE TABLE `Payments` (
-    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `order_id` INT UNSIGNED NOT NULL,
-    `Amount` DECIMAL(10,2) NOT NULL,
-    `Payment status` VARCHAR(30) NOT NULL,
-    `Payment reference` VARCHAR(255) NOT NULL,
+-- SHIPMENTS
 
-    FOREIGN KEY (`order_id`)
-        REFERENCES `Orders` (`id`)
+CREATE TABLE shipments (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    order_id INT UNSIGNED NOT NULL,
+    rate_id INT UNSIGNED NOT NULL,
+    tracking_number VARCHAR(100) NULL,
+    shipping_status VARCHAR(30) NOT NULL DEFAULT 'pending',
+    shipping_cost DECIMAL(8,2) NOT NULL,
+
+    FOREIGN KEY (order_id)
+        REFERENCES orders(id),
+
+    FOREIGN KEY (rate_id)
+        REFERENCES shipping_rates(id)
 );
 
 
-CREATE TABLE `Reviews` (
-    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `user_id` INT UNSIGNED NOT NULL,
-    `product_id` INT UNSIGNED NOT NULL,
-    `Rating` INT NOT NULL,
-    `Comment` TEXT NOT NULL,
+-- PAYMENTS
 
-    FOREIGN KEY (`user_id`)
-        REFERENCES `Users` (`id`),
+CREATE TABLE payments (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    order_id INT UNSIGNED NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    payment_status VARCHAR(30) NOT NULL,
+    payment_reference VARCHAR(255) NOT NULL,
 
-    FOREIGN KEY (`product_id`)
-        REFERENCES `Products` (`id`)
+    FOREIGN KEY (order_id)
+        REFERENCES orders(id)
 );
 
 
-CREATE TABLE `Inventory Transactions` (
-    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `product_id` INT UNSIGNED NOT NULL,
-    `user_id` INT UNSIGNED NOT NULL,
-    `Quantity change` INT NOT NULL,
-    `Transaction type` VARCHAR(100) NOT NULL,
-    `Transaction date` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+-- REVIEWS
 
-    FOREIGN KEY (`product_id`)
-        REFERENCES `Products` (`id`),
+CREATE TABLE reviews (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL,
+    product_id INT UNSIGNED NOT NULL,
+    rating INT NOT NULL,
+    comment TEXT NOT NULL,
 
-    FOREIGN KEY (`user_id`)
-        REFERENCES `Users` (`id`)
+    FOREIGN KEY (user_id)
+        REFERENCES users(id),
+
+    FOREIGN KEY (product_id)
+        REFERENCES products(id)
+);
+
+
+-- INVENTORY TRANSACTIONS
+
+CREATE TABLE inventory_transactions (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    product_id INT UNSIGNED NOT NULL,
+    user_id INT UNSIGNED NOT NULL,
+    quantity_change INT NOT NULL,
+    transaction_type VARCHAR(100) NOT NULL,
+    transaction_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (product_id)
+        REFERENCES products(id),
+
+    FOREIGN KEY (user_id)
+        REFERENCES users(id)
 );
